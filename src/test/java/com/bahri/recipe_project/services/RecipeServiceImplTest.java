@@ -1,5 +1,7 @@
 package com.bahri.recipe_project.services;
 
+import com.bahri.recipe_project.converters.RecipeCommandToRecipe;
+import com.bahri.recipe_project.converters.RecipeToRecipeCommand;
 import com.bahri.recipe_project.domain.Recipe;
 import com.bahri.recipe_project.repositories.RecipeRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,10 +23,16 @@ class RecipeServiceImplTest {
     @Mock
     RecipeRepository recipeRepository;
 
+    @Mock
+    RecipeToRecipeCommand recipeToRecipeCommand;
+
+    @Mock
+    RecipeCommandToRecipe recipeCommandToRecipe;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        recipeService = new RecipeServiceImpl(recipeRepository);
+        recipeService = new RecipeServiceImpl(recipeRepository, recipeCommandToRecipe, recipeToRecipeCommand);
     }
 
     @Test
@@ -53,5 +61,12 @@ class RecipeServiceImplTest {
 
     }
 
+    @Test
+    public void testDeleteById() throws Exception {
+        Long id = 2L;
+        recipeService.deleteById(id);
+
+        verify(recipeRepository,times(1)).deleteById(anyLong());
+    }
 
 }
