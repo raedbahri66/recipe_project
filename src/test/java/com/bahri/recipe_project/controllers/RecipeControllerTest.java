@@ -2,6 +2,7 @@ package com.bahri.recipe_project.controllers;
 
 import com.bahri.recipe_project.commands.RecipeCommand;
 import com.bahri.recipe_project.domain.Recipe;
+import com.bahri.recipe_project.exceptions.NotFoundException;
 import com.bahri.recipe_project.services.RecipeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,10 +10,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,7 +37,7 @@ class RecipeControllerTest {
 
         MockitoAnnotations.openMocks(this);
         controller = new RecipeController(recipeService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new ControllerExceptionHandler()).build();
 
     }
 
@@ -48,6 +51,30 @@ class RecipeControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/recipe/show/1"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("recipe/show"));
+    }
+
+    @Test
+    public void testGetRecipeNotFound() throws Exception {
+        Recipe recipe = new Recipe();
+        recipe.setId(1L);
+
+        when(recipeService.findById(anyLong())).thenThrow(NotFoundException.class);
+
+        mockMvc.perform((MockMvcRequestBuilders.get("/recipe/show/1")))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("404error"));
+    }
+
+    @Test
+    public void testGetRecipeNumberFormatException() throws Exception {
+        Recipe recipe = new Recipe();
+        recipe.setId(1L);
+
+        when(recipeService.findById(anyLong())).thenThrow(NumberFormatException.class);
+
+        mockMvc.perform((MockMvcRequestBuilders.get("/recipe/show/44ss")))
+                .andExpect(status().isBadRequest())
+                .andExpect(view().name("400error"));
     }
 
     @Test
@@ -68,9 +95,25 @@ class RecipeControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/recipe")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param("id","")
-                .param("description", "some string"))
+                        .param("description","ddddddd")
+                        .param("directions","ddddd")
+                        .param("url","testdd"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/recipe/show/2"));
+    }
+
+    @Test
+    public void testPostNewRecipeFormNotValid() throws Exception {
+        RecipeCommand command = new RecipeCommand();
+        command.setId(2L);
+
+        when(recipeService.saveRecipeCommand(any())).thenReturn(command);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/recipe")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("id",""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("recipe/recipeform"));
     }
 
     @Test
