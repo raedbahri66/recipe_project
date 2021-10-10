@@ -28,6 +28,8 @@ jobs:
       - run:
           name: Test
           command: mvn test
+      - codecov/upload:
+          file: coverage/coverage-final.json
 
 
 # Invoke jobs via workflows
@@ -37,6 +39,3 @@ workflows:
     # Inside the workflow, you define the jobs you want to run.
     jobs:
       - build-and-test
-  upload-to-codecov:
-    jobs:
-      - codecov/upload
