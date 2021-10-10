@@ -22,21 +22,24 @@ public class ImageServiceImpl implements ImageService {
     @Override
     @Transactional
     public void saveImageFile(Long recipeId, MultipartFile file) {
-
+        Recipe recipe;
         try {
-            Recipe recipe = recipeRepository.findById(recipeId).get();
+            if(recipeRepository.findById(recipeId).isPresent()) {
+                recipe = recipeRepository.findById(recipeId).get();
 
-            Byte[] byteObjects = new Byte[file.getBytes().length];
+                Byte[] byteObjects = new Byte[file.getBytes().length];
 
-            int i = 0;
+                int i = 0;
 
-            for (byte b : file.getBytes()){
-                byteObjects[i++] = b;
+                for (byte b : file.getBytes()){
+                    byteObjects[i++] = b;
+                }
+
+                recipe.setImage(byteObjects);
+
+                recipeRepository.save(recipe);
             }
 
-            recipe.setImage(byteObjects);
-
-            recipeRepository.save(recipe);
         } catch (IOException e) {
             //todo handle better
             log.error("Error occurred", e);

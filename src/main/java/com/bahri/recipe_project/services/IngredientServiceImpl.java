@@ -39,20 +39,24 @@ public class IngredientServiceImpl implements IngredientService {
         if (!recipeOptional.isPresent()){
             //todo impl error handling
             log.error("recipe id not found. Id: " + recipeId);
+            return new IngredientCommand();
+        } else {
+
+            Recipe recipe = recipeOptional.get();
+
+            Optional<IngredientCommand> ingredientCommandOptional = recipe.getIngredients().stream()
+                    .filter(ingredient -> ingredient.getId().equals(ingredientId))
+                    .map(ingredientToIngredientCommand::convert).findFirst();
+
+
+            if (!ingredientCommandOptional.isPresent()) {
+                //todo impl error handling
+                log.error("Ingredient id not found: " + ingredientId);
+                return new IngredientCommand();
+            } else {
+                return ingredientCommandOptional.get();
+            }
         }
-
-        Recipe recipe = recipeOptional.get();
-
-        Optional<IngredientCommand> ingredientCommandOptional = recipe.getIngredients().stream()
-                .filter(ingredient -> ingredient.getId().equals(ingredientId))
-                .map(ingredientToIngredientCommand::convert).findFirst();
-
-        if(!ingredientCommandOptional.isPresent()){
-            //todo impl error handling
-            log.error("Ingredient id not found: " + ingredientId);
-        }
-
-        return ingredientCommandOptional.get();
     }
 
     @Override
@@ -84,8 +88,10 @@ public class IngredientServiceImpl implements IngredientService {
             } else {
                 //add new Ingredient
                 Ingredient ingredient = ingredientCommandToIngredient.convert(command);
-                ingredient.setRecipe(recipe);
-                recipe.addIngredient(ingredient);
+                if (ingredient != null) {
+                    ingredient.setRecipe(recipe);
+                    recipe.addIngredient(ingredient);
+                }
             }
 
             Recipe savedRecipe = recipeRepository.save(recipe);
@@ -105,7 +111,9 @@ public class IngredientServiceImpl implements IngredientService {
             }
 
             //to do check for fail
+            if(savedIngredientOptional.isPresent())
             return ingredientToIngredientCommand.convert(savedIngredientOptional.get());
+            else return new IngredientCommand();
         }
 
     }
