@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -22,10 +23,10 @@ public class ImageServiceImpl implements ImageService {
     @Override
     @Transactional
     public void saveImageFile(Long recipeId, MultipartFile file) {
-        Recipe recipe;
+        Optional<Recipe> recipeOptional = recipeRepository.findById(recipeId);
         try {
-            if(recipeRepository.findById(recipeId).isPresent()) {
-                recipe = recipeRepository.findById(recipeId).get();
+            if(recipeOptional.isPresent()) {
+                Recipe recipe = recipeOptional.get();
 
                 Byte[] byteObjects = new Byte[file.getBytes().length];
 
