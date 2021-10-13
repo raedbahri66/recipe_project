@@ -28,6 +28,7 @@ public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEven
         this.unitOfMeasureRepository = unitOfMeasureRepository;
     }
 
+
     @Override
     @Transactional
     public void onApplicationEvent(ContextRefreshedEvent event) {
